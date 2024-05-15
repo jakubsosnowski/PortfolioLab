@@ -4,8 +4,8 @@
     <header>
       <nav class="container container--70">
         <ul class="nav--actions">
-          <li><a href="#">Zaloguj</a></li>
-          <li class="highlighted"><a href="#">Załóż konto</a></li>
+          <li><a href="{% url 'login' %}"">Zaloguj</a></li>
+          <li class="highlighted"><a href="{% url 'register' %}">Załóż konto</a></li>
         </ul>
 
       {% include 'menu.html' %}}
@@ -13,17 +13,23 @@
 
     <section class="login-page">
       <h2>Zaloguj się</h2>
-      <form>
+      <form action="" method="post">
+        {% csrf_token %}
         <div class="form-group">
-          <input type="email" name="email" placeholder="Email" />
+          <input type="email" name="email" id="email" placeholder="Email" />
         </div>
         <div class="form-group">
-          <input type="password" name="password" placeholder="Hasło" />
+          <input type="password" name="password" id="password" placeholder="Hasło" />
           <a href="#" class="btn btn--small btn--without-border reset-password">Przypomnij hasło</a>
+        </div>
+        <div>
+          {% if message %}
+          <p>{{ message }}</p>
+          {% endif %}
         </div>
 
         <div class="form-group form-group--buttons">
-          <a href="#" class="btn btn--without-border">Załóż konto</a>      
+          <a href="{% url 'register' %}"  class="btn btn--without-border">Załóż konto</a>
           <button class="btn" type="submit">Zaloguj się</button> 
         </div>
       </form>

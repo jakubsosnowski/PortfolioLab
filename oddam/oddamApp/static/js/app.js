@@ -12,9 +12,27 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     init() {
-      this.events();
+      const url = new URL(window.location.href);
+    if (url.searchParams.get('fundations_page')) {
+        this.currentSlide = '1';
+    } else if (url.searchParams.get('organizations_page')) {
+        this.currentSlide = '2';
+    } else if (url.searchParams.get('collections_page')) {
+        this.currentSlide = '3';
     }
 
+    this.events();
+    this.updateSlide();
+    }
+
+
+    updateSlide() {
+    [...this.$buttonsContainer.children].forEach(btn => btn.firstElementChild.classList.remove("active"));
+    this.$slidesContainers.forEach(el => el.classList.remove("active"));
+
+    this.$buttonsContainer.querySelector(`[data-id="${this.currentSlide}"] a`).classList.add("active");
+    this.$el.querySelector(`.help--slides[data-id="${this.currentSlide}"]`).classList.add("active");
+}
     events() {
       /**
        * Slide buttons
@@ -62,8 +80,26 @@ document.addEventListener("DOMContentLoaded", function() {
     changePage(e) {
       e.preventDefault();
       const page = e.target.dataset.page;
+      const type = e.target.closest('.help--slides').dataset.id
 
-      console.log(page);
+      const url = new URL(window.location.href);
+
+      url.searchParams.delete('fundations_page');
+      url.searchParams.delete('organizations_page');
+      url.searchParams.delete('collections_page')
+
+      let pageParam = 'page'
+      if (type == '1') {
+        pageParam = 'fundations_page'
+      } else if (type == '2') {
+        pageParam = 'organizations_page'
+      } else if (type == '3'){
+        pageParam = 'collections_page'
+      }
+
+      url.searchParams.set(pageParam, page);
+
+      window.location.href = url.href;
     }
   }
   const helpSection = document.querySelector(".help");
