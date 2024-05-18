@@ -270,22 +270,132 @@ document.addEventListener("DOMContentLoaded", function() {
       this.$stepInstructions[0].parentElement.parentElement.hidden = this.currentStep >= 6;
       this.$step.parentElement.hidden = this.currentStep >= 6;
 
-      // TODO: get data from inputs and show them in summary
+      this.updateSummary();
     }
 
+    updateSummary() {
+    this.$step.innerText = this.currentStep;
+
+    this.slides.forEach(slide => {
+        slide.classList.remove("active");
+
+        if (slide.dataset.step == this.currentStep) {
+            slide.classList.add("active");
+        }
+    });
+
+    this.$stepInstructions[0].parentElement.parentElement.hidden = this.currentStep >= 6;
+    this.$step.parentElement.hidden = this.currentStep >= 6;
+
+    // Update summary with selected categories
+    this.updateSummaryCategory();
+}
+
+updateSummaryCategory() {
+    const checkedCheckboxes = document.querySelectorAll('.category-checkbox:checked');
+    const categories = [];
+
+    checkedCheckboxes.forEach(checkbox => {
+        const descriptionElement = checkbox.parentElement.querySelector('.description-checkbox');
+        categories.push(descriptionElement.innerText);
+    });
+
+    const fundationChecked = document.querySelector('[data-step="3"] input[type="radio"]:checked');
+    let fundationName = ''
+    if(fundationChecked) {
+    fundationName = fundationChecked.parentElement.querySelector('.description .title').innerText;
+    }
+
+    const bagsInputElement = document.querySelector("input[name='bags']");
+    const bagsValue = bagsInputElement.value
+
+    const categoriesText = categories.join(', ');
+    const summaryCategoryElement = document.querySelector('.summary-bags');
+    const fundationElement = document.querySelector('.summary-fundation');
+
+    const addressData = document.querySelectorAll('.form--address')
+    const courierData = document.querySelectorAll('.form--courier')
+
+    let addressDataArr = [];
+    for (let i= 0; i < addressData.length; i++){
+        addressDataArr.push(addressData[i].value)
+    }
+
+    let courierDataArr = []
+  for (let i=0; i<courierData.length; i++){
+    courierDataArr.push(courierData[i].value)
+  }
+
+    if (summaryCategoryElement) {
+        summaryCategoryElement.innerText = `Ilość worków ${bagsValue} - ${categoriesText}`;
+    }
+    if (fundationElement){
+      fundationElement.innerText = `Dla ${fundationName}`
+    }
+
+    const addressResultGroup = document.querySelector('.address-results ul');
+    addressResultGroup.innerHTML = '';
+    addressDataArr.forEach(element => {
+      let li = document.createElement('li');
+      li.innerText = element;
+      addressResultGroup.appendChild(li);
+    })
+
+    const courierResultGroup = document.querySelector('.courier-results ul');
+    courierResultGroup.innerHTML = ''
+    courierDataArr.forEach(element => {
+      let li = document.createElement('li')
+      li.innerText = element
+      courierResultGroup.appendChild(li);
+    })
+
+
+
+}
     /**
      * Submit form
      *
      * TODO: validation, send data to server
      */
     submit(e) {
-      e.preventDefault();
-      this.currentStep++;
-      this.updateForm();
+      if (this.currentStep <5) {
+        e.preventDefault();
+        this.currentStep++;
+        this.updateForm();
+      } else {
+        console.log('Formularz wysłany')
+      }
     }
   }
+
   const form = document.querySelector(".form--steps");
   if (form !== null) {
     new FormSteps(form);
   }
+
+  const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+  const organizationItems = document.querySelectorAll('.organization-item');
+
+  categoryCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', filterOrganizations);
+  });
+
+  function filterOrganizations() {
+    const selectedCategories = Array.from(categoryCheckboxes)
+      .filter(checkbox => checkbox.checked)
+      .map(checkbox => checkbox.value);
+
+    organizationItems.forEach(item => {
+      const itemCategories = item.getAttribute('data-categories').split(',');
+      const isVisible = selectedCategories.every(category => itemCategories.includes(category));
+
+      if (isVisible) {
+        item.style.display = 'block';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+
+  filterOrganizations();
 });
