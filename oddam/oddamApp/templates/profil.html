@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+  <body>
+  {% block content %}
+  <header>
+      <nav class="container container--70">
+         {% if user.is_authenticated %}
+      {% include 'menu_users.html' %}
+      {% else %}
+      <nav class="container container--70">
+        <ul class="nav--actions">
+          <li><a href="{% url 'login' %}" class="btn btn--small btn--without-border">Zaloguj</a></li>
+          <li><a href="{% url 'register' %}" class="btn btn--small btn--highlighted">Załóż konto</a></li>
+        </ul>
+      {% endif %}
+      {% include 'menu.html' %}
+    </header>
+  <div class="profil">
+    <h3>Dane konta:</h3>
+    <p>Imię: {{current_user.first_name }}</p>
+    <p>Nazwisko: {{ current_user.last_name }}</p>
+    <p>Email: {{ current_user.email }}</p>
+</div>
+  <div class="profil">
+      <h3>Lista przekazanych darów:</h3>
+      <table>
+          <thead>
+            <tr>
+                <th>Ilość worków</th>
+                <th>Nazwa organizacji</th>
+                <th>Kategorie</th>
+                <th>Data odbioru</th>
+                <th>Godzina odbioru</th>
+            </tr>
+          </thead>
+          {% for donation in donations %}
+          <tbody>
+            <td>{{ donation.quantity }}</td>
+            <td>{{ donation.institution.name }}</td>
+            <td>
+                {% for category in donation.categories.all %}
+                    {{ category.name }}
+                    {% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+            <td>{{ donation.pick_up_date |date:"Y-m-d" }}</td>
+            <td>{{ donation.pick_up_time |time:"H:i"}}</td>
+          </tbody>
+            {% endfor %}
+      </table>
+  </div>
+
+  {% include 'footer.html' %}
+    <script src="{% static 'js/app.js' %}"></script>
+    {% endblock %}
+  </body>
+</html>

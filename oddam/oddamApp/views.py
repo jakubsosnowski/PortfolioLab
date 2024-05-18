@@ -3,8 +3,9 @@ from django.views import View
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import Donation, Institution
+from .models import Donation, Institution, Category
 from django.contrib.auth.models import User
 
 
@@ -34,9 +35,41 @@ class LandingPage(View):
                                               'collections_all': collections_all, 'collections_page_obj': collections_page_obj})
 
 
-class AddDonation(View):
+class AddDonation(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'form.html')
+        categories = Category.objects.all()
+        organizations = Institution.objects.all()
+        return render(request, 'form.html', {'categories': categories, 'organizations': organizations})
+
+    def post(self, request):
+        categories = request.POST.getlist('categories')
+        bags = request.POST.get('bags')
+        organization = request.POST.get('organization')
+        address = request.POST.get('address')
+        city = request.POST.get('city')
+        postcode = request.POST.get('postcode')
+        phone = request.POST.get('phone')
+        data = request.POST.get('data')
+        time = request.POST.get('time')
+        more_info = request.POST.get('more_info')
+        user = request.user
+
+        donation = Donation.objects.create(
+            quantity=bags,
+            institution_id=organization,
+            address=address,
+            phone_number=phone,
+            city=city,
+            zip_code=postcode,
+            pick_up_date=data,
+            pick_up_time=time,
+            pick_up_comment=more_info,
+            user=user
+        )
+        donation.categories.set(categories)
+        donation.save()
+
+        return render(request, 'form-confirmation.html')
 
 
 class Login(View):
@@ -88,6 +121,7 @@ class Register(View):
         user = User.objects.create_user(username=email, password=password)
         user.first_name = name
         user.last_name = surname
+        user.email = email
         user.save()
 
         messages.success(request, 'Konto zostało pomyślnie utworzone')
@@ -98,3 +132,11 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         return redirect('landing_page')
+
+
+class ProfilView(LoginRequiredMixin, View):
+    def get(self, request):
+        current_user = request.user
+        donations = Donation.objects.filter(user=current_user.id)
+        return render(request, 'profil.html', {'current_user': current_user, 'donations': donations })
+
